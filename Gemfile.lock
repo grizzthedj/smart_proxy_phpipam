@@ -1,0 +1,45 @@
+GIT
+  remote: https://github.com/theforeman/smart-proxy
+  revision: d0976b9dd61282214c8777ed6f775f9ea9d66a3c
+  branch: develop
+  specs:
+    smart_proxy (1.23.0.develop)
+      json
+      logging
+      rack (>= 1.1)
+      sinatra
+
+PATH
+  remote: .
+  specs:
+    smart_proxy_phpipam (0.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (2.2.0)
+    little-plugger (1.1.4)
+    logging (2.2.2)
+      little-plugger (~> 1.1)
+      multi_json (~> 1.10)
+    multi_json (1.13.1)
+    mustermann (1.0.3)
+    rack (2.0.7)
+    rack-protection (2.0.5)
+      rack
+    sinatra (2.0.5)
+      mustermann (~> 1.0)
+      rack (~> 2.0)
+      rack-protection (= 2.0.5)
+      tilt (~> 2.0)
+    tilt (2.0.9)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  smart_proxy!
+  smart_proxy_phpipam!
+
+BUNDLED WITH
+   2.0.1

@@ -1,0 +1,6 @@
+
+module Proxy
+  module Phpipam
+    VERSION = '0.0.1'
+  end
+end
