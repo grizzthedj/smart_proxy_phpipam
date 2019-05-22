@@ -65,6 +65,38 @@ module Proxy::Phpipam
       end
     end
 
+    get '/ip_exists' do
+      content_type :json 
+
+      begin
+        cidr = params[:cidr]
+        ip = params[:ip]
+
+        return {error: "Missing 'cidr' parameter. A CIDR IPv4 address must be provided(e.g. 100.10.10.0/24)"}.to_json if not cidr
+        return {error: "Missing 'ip' parameter. An IPv4 address must be provided(e.g. 100.10.10.22)"}.to_json if not ip
+
+        response = PhpipamClient.get_subnet(cidr)
+
+        if response['message'] && response['message'].downcase == "no subnets found"
+          return {error: "The specified subnet does not exist in phpIPAM."}.to_json
+        end
+
+        subnet_id = response['data'][0]['id']
+
+        response = PhpipamClient.ip_exists(ip, subnet_id)
+
+        if response && response['message'] && response['message'].downcase == 'no addresses found'
+          exists = {ip: ip, exists: false}
+        else 
+          exists = {ip: ip, exists: true}
+        end
+
+        exists.to_json
+      rescue Errno::ECONNREFUSED => e
+        return {error: "Unable to connect to phpIPAM server"}.to_json
+      end
+    end
+
     post '/add_ip_to_subnet' do
       content_type :json
 
@@ -72,8 +104,8 @@ module Proxy::Phpipam
         cidr = params[:cidr]
         ip = params[:ip]
 
-        raise "Missing 'cidr' parameter. A CIDR IPv4 address must be provided(e.g. 100.10.10.0/24)" if not cidr
-        raise "Missing 'ip' parameter. An IPv4 address must be provided(e.g. 100.10.10.22)" if not ip
+        return {error: "Missing 'cidr' parameter. A CIDR IPv4 address must be provided(e.g. 100.10.10.0/24)"}.to_json if not cidr
+        return {error: "Missing 'ip' parameter. An IPv4 address must be provided(e.g. 100.10.10.22)"}.to_json if not ip
 
         response = PhpipamClient.get_subnet(cidr)
 
