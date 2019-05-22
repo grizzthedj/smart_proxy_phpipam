@@ -36,6 +36,10 @@ module Proxy::Phpipam
       self.get('sections/' + section_id.to_s + '/subnets/')
     end
 
+    def self.ip_exists(ip, subnet_id)
+      self.get('subnets/' + subnet_id.to_s + '/addresses/' + ip + '/')
+    end
+
     private
 
     def self.get(path, body=nil)
