@@ -40,6 +40,10 @@ module Proxy::Phpipam
       self.get('subnets/' + subnet_id.to_s + '/addresses/' + ip + '/')
     end
 
+    def self.delete_ip_from_subnet(ip, subnet_id)
+      self.delete('addresses/' + ip + '/' + subnet_id.to_s + '/') 
+    end
+
     private
 
     def self.get(path, body=nil)
@@ -47,6 +51,20 @@ module Proxy::Phpipam
       uri = URI(@api_base + path)
       uri.query = URI.encode_www_form(body) if body
       request = Net::HTTP::Get.new(uri)
+      request['token'] = @token
+
+      response = Net::HTTP.start(uri.hostname, uri.port) {|http|
+        http.request(request)
+      }
+
+      JSON.parse(response.body)
+    end
+
+    def self.delete(path, body=nil)
+      self.authenticate
+      uri = URI(@api_base + path)
+      uri.query = URI.encode_www_form(body) if body
+      request = Net::HTTP::Delete.new(uri)
       request['token'] = @token
 
       response = Net::HTTP.start(uri.hostname, uri.port) {|http|
@@ -71,18 +89,16 @@ module Proxy::Phpipam
     end
 
     def self.authenticate
-      if @token == nil
-        auth_uri = URI(@api_base + '/user/')
-        request = Net::HTTP::Post.new(auth_uri)
-        request.basic_auth @phpipam_config[:user], @phpipam_config[:password]
+      auth_uri = URI(@api_base + '/user/')
+      request = Net::HTTP::Post.new(auth_uri)
+      request.basic_auth @phpipam_config[:user], @phpipam_config[:password]
 
-        response = Net::HTTP.start(auth_uri.hostname, auth_uri.port) {|http|
-          http.request(request)
-        }
+      response = Net::HTTP.start(auth_uri.hostname, auth_uri.port) {|http|
+        http.request(request)
+      }
 
-        response = JSON.parse(response.body)
-        @token = response['data']['token']
-      end
+      response = JSON.parse(response.body)
+      @token = response['data']['token']
     end
   end
 end
