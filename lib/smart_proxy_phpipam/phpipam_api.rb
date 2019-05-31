@@ -37,6 +37,19 @@ module Proxy::Phpipam
       end
     end
 
+    get '/get_subnet' do
+      content_type :json
+
+      begin
+        cidr = params[:cidr]
+
+        subnet = PhpipamClient.get_subnet(cidr)
+        subnet.to_json
+      rescue Errno::ECONNREFUSED => e
+        return {error: "Unable to connect to phpIPAM server"}.to_json
+      end
+    end
+
     get '/sections' do
       content_type :json
 
@@ -122,5 +135,32 @@ module Proxy::Phpipam
         return {error: "Unable to connect to phpIPAM server"}.to_json
       end
     end
+
+    post '/delete_ip_from_subnet' do
+      content_type :json
+
+      begin
+        cidr = params[:cidr]
+        ip = params[:ip]
+
+        return {error: "Missing 'cidr' parameter. A CIDR IPv4 address must be provided(e.g. 100.10.10.0/24)"}.to_json if not cidr
+        return {error: "Missing 'ip' parameter. An IPv4 address must be provided(e.g. 100.10.10.22)"}.to_json if not ip
+
+        response = PhpipamClient.get_subnet(cidr)
+
+        if response['message'] && response['message'].downcase == "no subnets found"
+          return {error: "The specified subnet does not exist in phpIPAM."}.to_json
+        end
+
+        subnet_id = response['data'][0]['id']
+
+        PhpipamClient.delete_ip_from_subnet(ip, subnet_id)
+
+        {message: "IP #{ip} deleted from subnet #{cidr} successfully."}.to_json
+      rescue Errno::ECONNREFUSED => e
+        return {error: "Unable to connect to phpIPAM server"}.to_json
+      end
+    end
+
   end
 end
